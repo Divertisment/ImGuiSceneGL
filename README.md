@@ -1,7 +1,14 @@
 # ImGuiScene
-A simple ibrary that wraps everything necessary to add ImGui support to a C# project.  This is mainly useful inside a dll that is injected into a game or similar process, in order to provide a simple transparent overlay where ImGui controls can be trivially created.  It can also be used as a standalone application for prototyping or testing ImGui scenes etc.
+based on https://github.com/ff-meli/ImGuiScene.
 
-ImGui integration is done with [ImGui.NET](https://github.com/mellinoe/ImGui.NET), while window creation and events use [SDL2-CS](https://github.com/flibitijibibo/SDL2-CS).  The semi-official ImGui backend implementations for [SDL](https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_sdl.cpp), [DX11](https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp), and [OpenGL3](https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_opengl3.cpp) were ported as directly as possible to SDL2-CS, SharpDX and OpenGL.NET.  The C++ sources for those implementations are extremely messy and poor as-is, and currently no effort has been made to clean them up for C#, or to impose reasonable code design on them.  They do work for now, and hopefully I can improve on them later.
+need https://github.com/mellinoe/ImGui.NET, https://github.com/flibitijibibo/SDL2-CS. 
+
+Removed everything related to DX.
+
+Added transparency to frames.
+
+Added a test project with drawing ui elements over POE
+
 
 ### How to use
 There are two main ways of using ImGuiScene in your project:
