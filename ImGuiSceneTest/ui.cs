@@ -23,7 +23,8 @@ namespace ImGuiSceneTest {
         static bool b_was_copy, b_show_log = true, draw_children=true,  b_can_click = true;
         static bool b_ready => poe != null && ui_root != null && ui_root.IsValid;
         static Process poe;
-        public static Element ui_root;
+        public static Element ui_root;//i's IngameStateOffsets.IngameUi, NOT IngameStateOffsets.UIRoot
+        // [FieldOffset(0x5C0)] public long UIRoot; =>wrong?
         public static Camera camera;
         static IntPtr OpenProcessHandle; 
         #endregion
@@ -149,6 +150,8 @@ namespace ImGuiSceneTest {
             #endregion
 
         }
+        static Dictionary<string, Element> direct = new Dictionary<string, Element>();
+        static Dictionary<string, Element> roots = new Dictionary<string, Element>();
         #region LOG
         static FixedSizedLog log { get; } = new FixedSizedLog(30);
         public static void ClearLog() {
@@ -197,7 +200,8 @@ namespace ImGuiSceneTest {
 
         #endregion
 
-        #region Mem
+       
+        static long igs_addr, ui_addr;
         static void CheckPOE() {
             var pp_name = "PathOfExile";
             var pa = Process.GetProcessesByName(pp_name);
@@ -211,13 +215,44 @@ namespace ImGuiSceneTest {
             poe = pa[0];
             OpenProcessHandle = ProcessMemory.OpenProcess(ProcessAccessFlags.VirtualMemoryRead, poe.Id);
             var poe_base = poe.MainModule.BaseAddress.ToInt64();
-            var ui_addr = Read<long>(poe_base + 0x02632DF8, 8, 0, 0x30, 0x1E0, 0xC8);
+            var gs_offs = 0x02632DF8; //GameStateOffset
+            igs_addr = Read<long>(poe_base + gs_offs, 8, 0);// gc.Game.IngameState.Address
+            var igs_addr_hex = igs_addr.ToString("X"); //16907081520
+            ui_addr = Read<long>(igs_addr + 0x98);
             var ui_addr_hex = ui_addr.ToString("X");
-            var cam_addr = Read<long>(poe_base + 0x02632DF8, 8, 0) + 0x788;
+         
+          
+            var test =GetOffs(igs_addr, ui_addr);
+            var cam_addr = Read<long>(poe_base + gs_offs, 8, 0) + 0x788;
             var cam_addr_hex = cam_addr.ToString("X");
             camera = GetObject<Camera>(cam_addr);
             ui_root = GetObject<Element>(ui_addr);
         }
+  
+        static string GetOffs(long start,  long addr_i_need) {
+            var res = "";
+            var n = 0;
+            for(var i = start; i < start + 0x8000; i += 8) {
+                var addr = Read<long>(i);
+                var ne = GetObject<Element>(addr);
+                if(addr > 0 && ne.IsValid) {
+                    res = (i - start).ToString("X"); //B8 //118 //298 //2B8
+                    direct[res]=ne;
+                    Element root = ne;
+                    while(root.Parent != null) {
+                        root = root.Parent;
+                    }
+                    roots[res] = root;
+                }
+                if(addr == addr_i_need) {
+                    res = (i - start).ToString("X");
+                    break;
+                }
+                n += 1;
+            }
+            return res;
+        }
+        #region Mem
         public static string ReadString(long address,  int length = 256) {
             var size = Read<uint>(address + 0x10);
             var capacity = Read<uint>(address + 0x18);
@@ -349,12 +384,26 @@ namespace ImGuiSceneTest {
         }
         #endregion
         static Dictionary<int, RectangleF> frames = new Dictionary<int, RectangleF>();
+        static Dictionary<long, string> calc = new Dictionary<long, string>();
         public static void AddToTree(Element root) {
             if(ImGui.IsItemHovered()) {
                 AddFrames(root);
             }
             for(int i = 0; i < root.Children.Count; i++) {
                 var el = root.Children[i];
+                var offs = "";
+
+                if(!calc.ContainsKey(el.Address)) {//calc offset for IngameUElementsOffsets 
+                    offs = GetOffs(igs_addr, el.Address);
+                    if(offs.Length > 0) {
+
+                    }
+                    calc[el.Address] = offs;
+                }
+                else
+                    if(calc.ContainsKey(root.Address))
+                    offs = calc[root.Address];
+
                 var text = "";
                 if(el.ChildCount == 0) {
                     text = el.Text;
@@ -363,12 +412,10 @@ namespace ImGuiSceneTest {
                 }
                 else
                     text = "[" + el.ChildCount + "]";
+                if(offs.Length > 0)
+                    text += "{" + offs + "}";
                 var adress = $"{ el.Address:X}";
 
-                if(ImGui.TreeNode($"{adress} { text}")) {
-                    AddToTree(el);
-                    ImGui.TreePop();
-                }
                 if(ImGui.IsItemHovered()) {
                     AddFrames(el);
                     if(!b_was_copy && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) {
@@ -381,9 +428,13 @@ namespace ImGuiSceneTest {
                         ui.AddToLog("Cliked on ui.elem=" + res);
                     }
                 }
+                if(ImGui.TreeNode($"{adress} { text}")) {
+                    AddToTree(el);
+                    ImGui.TreePop();
+                }
             }
         }
-        static int mfst = 50; // max_frames_same_time = 200;
+        static int mfst = 60; // max_frames_same_time = 200;
         public static void AddFrames(Element root) {
             var hc = root.GetHashCode();
             if(frames.Count < mfst)
@@ -397,6 +448,6 @@ namespace ImGuiSceneTest {
                 }
             }
         }
-       
+      
     }
 }

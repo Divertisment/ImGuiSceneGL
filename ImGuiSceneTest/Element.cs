@@ -27,14 +27,13 @@ namespace ImGuiSceneTest {
         void OnAddressChange() {
             offs = ui.Read<ElementOffsets>(Address);
         }
-        public Element Root => ui.ui_root;
         private Element _parent;
         public Element Parent => offs.Parent == 0 ? null : (_parent ??= ui.GetObject<Element>(offs.Parent));
         public Vector2 Position => offs.Position;
         public float X => offs.X;
         public float Y => offs.Y;
         public Element Tooltip => Address == 0 ? null : 
-            ui.GetObject<Element>(ui.Read<long>(Address + 0x338));
+            ui.GetObject<Element>(ui.Read<long>(Address + 0x340));
         public float Scale => offs.Scale;
         public float Width => offs.Width;
         public float Height => offs.Height;
@@ -101,7 +100,7 @@ namespace ImGuiSceneTest {
 
             return pointers.Count != ChildCount ? new List<T>() : pointers.Select(ui.GetObject<T>).ToList();
         }
-
+        public Element Root => ui.ui_root; //must be IngameStateOffsets.UIRoot 
         private IList<Element> GetParentChain() {
             var list = new List<Element>();
 
@@ -134,6 +133,9 @@ namespace ImGuiSceneTest {
             }
 
             return new Vector2(num, num2);
+        }
+        public override string ToString() {
+            return Address.ToString("X") + " ch=" + Children.Count; 
         }
     }
    
