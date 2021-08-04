@@ -1,8 +1,12 @@
 # ImGuiScene
 based on https://github.com/ff-meli/ImGuiScene.
+
 need https://github.com/mellinoe/ImGui.NET, https://github.com/flibitijibibo/SDL2-CS. 
+
 Removed everything related to DX.
+
 Added transparency to frames.
+
 Added a test project with drawing ui elements over POE
 
 
