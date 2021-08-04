@@ -383,6 +383,9 @@ namespace ImGuiSceneTest {
                 }
             }
         }
+        /// <summary>
+        /// zzzz
+        /// </summary>
         static int mfst = 50; // max_frames_same_time = 200;
         public static void AddFrames(Element root) {
             var hc = root.GetHashCode();
