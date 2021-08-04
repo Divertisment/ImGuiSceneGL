@@ -13,6 +13,7 @@ namespace ImGuiSceneTest {
         long Address{ get; set; }
     }
     public class Element :IMemObj {
+        public string IngameStateOffsets_offs;
         ElementOffsets offs ;
         long _address;
         public long Address {

@@ -242,7 +242,8 @@ namespace ImGuiSceneTest {
                     while(root.Parent != null) {
                         root = root.Parent;
                     }
-                    roots[res] = root;
+                    root.IngameStateOffsets_offs = res;
+                    roots[root.Address.ToString("X")] = root;
                 }
                 if(addr == addr_i_need) {
                     res = (i - start).ToString("X");
