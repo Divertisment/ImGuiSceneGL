@@ -383,15 +383,16 @@ namespace ImGuiSceneTest {
                 }
             }
         }
+        static int mfst = 50; // max_frames_same_time = 200;
         public static void AddFrames(Element root) {
             var hc = root.GetHashCode();
-            if(frames.Count < 200)
+            if(frames.Count < mfst)
                 frames[hc] = root.GetClientRect();
             else
                 return;
             if(draw_children) {
                 foreach(var ch in root.Children) {
-                    Debug.Assert(frames.Count < 201);
+                    Debug.Assert(frames.Count < mfst+1);
                     AddFrames(ch);
                 }
             }
