@@ -25,6 +25,7 @@ namespace ImGuiSceneTest {
                 }
             }
         }
+        public string Address_hex => Address.ToString("X");
         void OnAddressChange() {
             offs = ui.Read<ElementOffsets>(Address);
         }

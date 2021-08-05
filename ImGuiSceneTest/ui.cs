@@ -63,7 +63,7 @@ namespace ImGuiSceneTest {
             if(!ui.b_contr_alt)
                 ImGui.PushStyleColor(ImGuiCol.WindowBg, Color.FromArgb(100, 5, 20, 5).ToImgui());
             ImGui.Begin(
-                "Debug ui_root",
+                "Debug ui_root at: "+ui.ui_root.Address_hex,
                     ImGuiWindowFlags.HorizontalScrollbar
                 | ImGuiWindowFlags.AlwaysVerticalScrollbar
                 );
@@ -220,9 +220,8 @@ namespace ImGuiSceneTest {
             var igs_addr_hex = igs_addr.ToString("X"); //2506031B0C0
 
             game_ui_addr = Read<long>(igs_addr + 0x98);
+            var game_ui_hex = game_ui_addr.ToString("X");
             game_ui = GetObject<Element>(game_ui_addr);
-
-            var ui_addr_hex = game_ui_addr.ToString("X");
          
             var test = GetOffs(igs_addr, game_ui_addr);
             var cam_addr = Read<long>(poe_base + gs_offs, 8, 0) + 0x788;
@@ -246,7 +245,10 @@ namespace ImGuiSceneTest {
                     while(root.Parent != null) {
                         root = root.Parent;
                     }
-                  
+                    var b_root_have_link_to_game_ui = root.Children.FirstOrDefault(ch => ch.Address == game_ui.Address) != null;
+                    if(b_root_have_link_to_game_ui) {
+                       // ui.AddToLog("Found ui_root at: " + res);
+                    }
                     root.IngameStateOffsets_offs = res;
                     roots[root.Address.ToString("X")] = root;
                 }
@@ -389,62 +391,56 @@ namespace ImGuiSceneTest {
             return result;
         }
         #endregion
-        static Dictionary<int, RectangleF> frames = new Dictionary<int, RectangleF>();
+        static Dictionary<string, RectangleF> frames = new Dictionary<string, RectangleF>();
         static Dictionary<long, string> calc = new Dictionary<long, string>();
-        public static void AddToTree(Element root) {
-            if(ImGui.IsItemHovered()) {
-                AddFrames(root);
+        public static void AddToTree(Element el) {
+            var gui_offs = "";
+            var text = "";
+            if(el.ChildCount == 0) {
+                text = el.Text;
+                if(text?.Length > 32)
+                    text = text.Substring(0, 32) + "...";
             }
-            for(int i = 0; i < root.Children.Count; i++) {
-                var el = root.Children[i];
-                var offs = "";
-
-                if(!calc.ContainsKey(el.Address)) {//calc offset for IngameUElementsOffsets 
-                    offs = GetOffs(igs_addr, el.Address);
-                    if(offs.Length > 0) {
+            else
+                text = "[" + el.ChildCount + "]";
+            if(gui_offs.Length > 0)
+                text += "{" + gui_offs + "}";
+            var adress = $"{ el.Address:X}";
+            if(ImGui.TreeNode($"{adress} { text}")) {
+                for(int i = 0; i < el.Children.Count; i++) {
+                    var ch = el.Children[i];
+                    AddToTree(ch);
+                }
+                ImGui.TreePop();
+            }
+            if(ImGui.IsItemHovered( ImGuiHoveredFlags.RootWindow)) {
+                AddFrames(el);
+                if(!b_was_copy && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) {
+                    var str = "";
+                    if(el.Text != null && el.Text.Length > 0)
+                        str = " " + el.Text;
+                    var res = el.Address_hex + str;
+                    ImGui.SetClipboardText(res);
+                    ui.AddToLog("Cliked on ui.elem=" + res);
+                    b_was_copy = true;
+                }
+                if(!calc.ContainsKey(el.Address)) {//calc offset at game_ui
+                    gui_offs = GetOffs(game_ui.Address, el.Address);
+                    if(gui_offs.Length > 0) {
 
                     }
-                    calc[el.Address] = offs;
+                    calc[el.Address] = gui_offs;
                 }
                 else
-                    if(calc.ContainsKey(root.Address))
-                    offs = calc[root.Address];
-
-                var text = "";
-                if(el.ChildCount == 0) {
-                    text = el.Text;
-                    if(text?.Length > 32)
-                        text = text.Substring(0, 32) + "...";
-                }
-                else
-                    text = "[" + el.ChildCount + "]";
-                if(offs.Length > 0)
-                    text += "{" + offs + "}";
-                var adress = $"{ el.Address:X}";
-
-                if(ImGui.IsItemHovered()) {
-                    AddFrames(el);
-                    if(!b_was_copy && ImGui.IsMouseClicked(ImGuiMouseButton.Right)) {
-                        var str = "";
-                        if(el.Text != null && el.Text.Length > 0)
-                            str = " " + el.Text;
-                        var res = el.Address.ToString("X") + str;
-                        ImGui.SetClipboardText(res);
-                        b_was_copy = true;
-                        ui.AddToLog("Cliked on ui.elem=" + res);
-                    }
-                }
-                if(ImGui.TreeNode($"{adress} { text}")) {
-                    AddToTree(el);
-                    ImGui.TreePop();
-                }
+                  if(calc.ContainsKey(el.Address))
+                    gui_offs = calc[el.Address];
             }
+           
         }
         static int mfst = 60; // max_frames_same_time = 200;
         public static void AddFrames(Element root) {
-            var hc = root.GetHashCode();
             if(frames.Count < mfst)
-                frames[hc] = root.GetClientRect();
+                frames[root.Address_hex] = root.GetClientRect();
             else
                 return;
             if(draw_children) {
