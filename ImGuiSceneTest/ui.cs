@@ -38,7 +38,6 @@ namespace ImGuiSceneTest {
             //scene.OnBuildUI +=  ImGui.ShowDemoWindow;
             scene.OnBuildUI += Draw;
             scene.Run();
-
         }
         private static void CurrentDomain_ProcessExit(object sender, EventArgs e) {
             scene.Dispose();
@@ -64,7 +63,7 @@ namespace ImGuiSceneTest {
             if(!ui.b_contr_alt)
                 ImGui.PushStyleColor(ImGuiCol.WindowBg, Color.FromArgb(100, 5, 20, 5).ToImgui());
             ImGui.Begin(
-                "Debug ui_root at: "+ui.ui_root.Address_hex,
+                "Debug game_ui at: " + ui.game_ui.Address_hex,
                     ImGuiWindowFlags.HorizontalScrollbar
                 | ImGuiWindowFlags.AlwaysVerticalScrollbar
                 );
