@@ -211,8 +211,8 @@ namespace ImGuiSceneTest {
             }
             else
                 ui.AddToLog("CheckPOE: reading was ok: " + pp_name);
-            ui.AddToLog("Use a  [Ctrl] +[Alt] keys to activate the ability to move/Clck with frames");
-            ui.AddToLog("Right-click on an item in the list to copy its address");
+            ui.AddToLog("Use [Ctrl]+[Alt] keys to activate the ability to move/Clck with frames");
+            ui.AddToLog("Use [Right]-click on an Element in the list to copy its address");
             poe = pa[0];
             OpenProcessHandle = ProcessMemory.OpenProcess(ProcessAccessFlags.VirtualMemoryRead, poe.Id);
             var poe_base = poe.MainModule.BaseAddress.ToInt64();
