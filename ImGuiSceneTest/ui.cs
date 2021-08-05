@@ -20,7 +20,7 @@ namespace ImGuiSceneTest {
         static bool b_contr_alt => b_ctrl && b_alt;
         static bool b_alt => Keyboard.IsKeyDown(Keys.LMenu);
         static bool b_ctrl => Keyboard.IsKeyDown(Keys.LControlKey);
-        static bool b_was_copy, b_show_log = true, draw_children=true,  b_can_click = true;
+        static bool b_was_copy, b_show_log = true, draw_children=true,  b_can_click = true, b_relative=true;
         static bool b_ready => poe != null && game_ui != null && game_ui.IsValid;
         static Process poe;
         public static Element game_ui;//i's IngameStateOffsets.IngameUi, NOT IngameStateOffsets.UIRoot
@@ -57,6 +57,7 @@ namespace ImGuiSceneTest {
             ImGui.Begin("Settings", ImGuiWindowFlags.AlwaysAutoResize);
             ImGui.Checkbox("CanClick", ref b_can_click);
             ImGui.Checkbox("draw children", ref draw_children);
+            ImGui.Checkbox("Show relative addres", ref b_relative);
             ImGui.End();
             #endregion
             #region tree
@@ -238,21 +239,21 @@ namespace ImGuiSceneTest {
             var n = 0;
             for(var i = start; i < start + 0x8000; i += 8) {
                 var addr = Read<long>(i);
-                var ne = GetObject<Element>(addr);
-                if(addr > 0 && ne.IsValid) {
-                    res = (i - start).ToString("X"); //B8 //118 //298 //2B8
-                    direct[res]=ne;
-                    Element root = ne;
-                    while(root.Parent != null) {
-                        root = root.Parent;
-                    }
-                    var b_root_have_link_to_game_ui = root.Children.FirstOrDefault(ch => ch.Address == game_ui.Address) != null;
-                    if(b_root_have_link_to_game_ui) {
-                       // ui.AddToLog("Found ui_root at: " + res);
-                    }
-                    root.IngameStateOffsets_offs = res;
-                    roots[root.Address.ToString("X")] = root;
-                }
+                //var ne = GetObject<Element>(addr);
+                //if(addr > 0 && ne.IsValid) {
+                //    res = (i - start).ToString("X"); //B8 //118 //298 //2B8
+                //    direct[res]=ne;
+                //    Element root = ne;
+                //    while(root.Parent != null) {
+                //        root = root.Parent;
+                //    }
+                //    var b_root_have_link_to_game_ui = root.Children.FirstOrDefault(ch => ch.Address == game_ui.Address) != null;
+                //    if(b_root_have_link_to_game_ui) {
+                //       // ui.AddToLog("Found ui_root at: " + res);
+                //    }
+                //    root.IngameStateOffsets_offs = res;
+                //    roots[root.Address.ToString("X")] = root;
+                //}
                 if(addr == addr_i_need) {
                     res = (i - start).ToString("X");
                     break;
@@ -397,6 +398,18 @@ namespace ImGuiSceneTest {
         public static void AddToTree(Element el) {
             var gui_offs = "";
             var text = "";
+            if(!calc.ContainsKey(el.Address)) {//calc offset at game_ui
+                gui_offs = GetOffs(game_ui.Address, el.Address);
+                if(gui_offs.Length > 0) {
+
+                }
+                calc[el.Address] = gui_offs;
+            }
+            else {
+                if(calc.ContainsKey(el.Address))
+                    gui_offs = calc[el.Address];
+            }
+               
             if(el.ChildCount == 0) {
                 text = el.Text;
                 if(text?.Length > 32)
@@ -404,9 +417,10 @@ namespace ImGuiSceneTest {
             }
             else
                 text = "[" + el.ChildCount + "]";
-            if(gui_offs.Length > 0)
-                text += "{" + gui_offs + "}";
+          
             var adress = $"{ el.Address:X}";
+            if(gui_offs.Length > 0 && b_relative)
+                adress = "0x"+gui_offs;
             if(ImGui.TreeNode($"{adress} { text}")) {
                 for(int i = 0; i < el.Children.Count; i++) {
                     var ch = el.Children[i];
@@ -425,16 +439,7 @@ namespace ImGuiSceneTest {
                     ui.AddToLog("Cliked on ui.elem=" + res);
                     b_was_copy = true;
                 }
-                if(!calc.ContainsKey(el.Address)) {//calc offset at game_ui
-                    gui_offs = GetOffs(game_ui.Address, el.Address);
-                    if(gui_offs.Length > 0) {
-
-                    }
-                    calc[el.Address] = gui_offs;
-                }
-                else
-                  if(calc.ContainsKey(el.Address))
-                    gui_offs = calc[el.Address];
+              
             }
            
         }
