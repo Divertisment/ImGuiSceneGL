@@ -21,9 +21,10 @@ namespace ImGuiSceneTest {
         static bool b_alt => Keyboard.IsKeyDown(Keys.LMenu);
         static bool b_ctrl => Keyboard.IsKeyDown(Keys.LControlKey);
         static bool b_was_copy, b_show_log = true, draw_children=true,  b_can_click = true;
-        static bool b_ready => poe != null && ui_root != null && ui_root.IsValid;
+        static bool b_ready => poe != null && game_ui != null && game_ui.IsValid;
         static Process poe;
-        public static Element ui_root;//i's IngameStateOffsets.IngameUi, NOT IngameStateOffsets.UIRoot
+        public static Element game_ui;//i's IngameStateOffsets.IngameUi, NOT IngameStateOffsets.UIRoot
+        public static Element ui_root;
         // [FieldOffset(0x5C0)] public long UIRoot; =>wrong?
         public static Camera camera;
         static IntPtr OpenProcessHandle; 
@@ -70,7 +71,7 @@ namespace ImGuiSceneTest {
             frames.Clear();
             if(b_ready) {
                 sw.Restart();
-                AddToTree(ui_root);
+                AddToTree(game_ui);
                 var elaps = sw.Elapsed.TotalMilliseconds;
                 if(elaps > max_elaps)
                     max_elaps = elaps;
@@ -200,8 +201,7 @@ namespace ImGuiSceneTest {
 
         #endregion
 
-       
-        static long igs_addr, ui_addr;
+        static long igs_addr, game_ui_addr, ui_root_addr;
         static void CheckPOE() {
             var pp_name = "PathOfExile";
             var pa = Process.GetProcessesByName(pp_name);
@@ -215,18 +215,22 @@ namespace ImGuiSceneTest {
             poe = pa[0];
             OpenProcessHandle = ProcessMemory.OpenProcess(ProcessAccessFlags.VirtualMemoryRead, poe.Id);
             var poe_base = poe.MainModule.BaseAddress.ToInt64();
-            var gs_offs = 0x02632DF8; //GameStateOffset
-            igs_addr = Read<long>(poe_base + gs_offs, 8, 0);// gc.Game.IngameState.Address
-            var igs_addr_hex = igs_addr.ToString("X"); //16907081520
-            ui_addr = Read<long>(igs_addr + 0x98);
-            var ui_addr_hex = ui_addr.ToString("X");
+            var gs_offs = 0x0263AEC8; //GameStateOffset
+            igs_addr = Read<long>(poe_base + gs_offs, 8, 0);// gc.Game.IngameState.Address pass 3.15.1
+            var igs_addr_hex = igs_addr.ToString("X"); //2506031B0C0
+
+            game_ui_addr = Read<long>(igs_addr + 0x98);
+            game_ui = GetObject<Element>(game_ui_addr);
+
+            var ui_addr_hex = game_ui_addr.ToString("X");
          
-          
-            var test =GetOffs(igs_addr, ui_addr);
+            var test = GetOffs(igs_addr, game_ui_addr);
             var cam_addr = Read<long>(poe_base + gs_offs, 8, 0) + 0x788;
-            var cam_addr_hex = cam_addr.ToString("X");
+            var cam_addr_hex = cam_addr.ToString("X"); 
             camera = GetObject<Camera>(cam_addr);
-            ui_root = GetObject<Element>(ui_addr);
+          
+            ui_root_addr = Read<long>(igs_addr + 0x5C0);
+            ui_root = GetObject<Element>(ui_root_addr);
         }
   
         static string GetOffs(long start,  long addr_i_need) {
@@ -242,6 +246,7 @@ namespace ImGuiSceneTest {
                     while(root.Parent != null) {
                         root = root.Parent;
                     }
+                  
                     root.IngameStateOffsets_offs = res;
                     roots[root.Address.ToString("X")] = root;
                 }

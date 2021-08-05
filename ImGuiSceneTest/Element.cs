@@ -66,7 +66,7 @@ namespace ImGuiSceneTest {
             var xScale = width / 2560f / ratioFixMult;
             var yScale = height / 1600f;
 
-            var rootScale = ui.ui_root.Scale;
+            var rootScale = ui.game_ui.Scale;
             var num = (vPos.X + X * Scale / rootScale) * xScale;
             var num2 = (vPos.Y + Y * Scale / rootScale) * yScale;
             return new RectangleF(num, num2, xScale * Width * Scale / rootScale, yScale * Height * Scale / rootScale);
@@ -126,17 +126,16 @@ namespace ImGuiSceneTest {
         public Vector2 GetParentPos() {
             float num = 0;
             float num2 = 0;
-            var rootScale = ui.ui_root.Scale;
-
+            var rootScale = ui.game_ui.Scale;
             foreach(var current in GetParentChain()) {
                 num += current.X * current.Scale / rootScale;
                 num2 += current.Y * current.Scale / rootScale;
             }
-
             return new Vector2(num, num2);
         }
         public override string ToString() {
-            return Address.ToString("X") + " ch=" + Children.Count; 
+           // return Address.ToString("X") + " ch=" + Children.Count; 
+            return IngameStateOffsets_offs + " ch=" + Children.Count; 
         }
     }
    
