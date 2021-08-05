@@ -1,7 +1,7 @@
 # ImGuiScene
  * based on https://github.com/ff-meli/ImGuiScene.
  * need https://github.com/mellinoe/ImGui.NET, https://github.com/flibitijibibo/SDL2-CS.
- * The output directory should contain SDL2.dll - just copy it there manually, perhaps.
+ * The output directory should contain SDL2.dll+cimgui.dll- just copy it there manually, perhaps.
  * Removed everything related to DX.
  * Added transparency to frames.
  * Added a test project with drawing ui elements over POE
