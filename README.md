@@ -5,7 +5,7 @@
  * Removed everything related to DX.
  * Added transparency to frames.
  * Added a test project with drawing ui elements over POE
- https://github.com/wlastas/ImGuiSceneGL/blob/master/ImGuiScene/ImGuiSceneGL.jpg
+ ![poe overlay](https://github.com/wlastas/ImGuiSceneGL/blob/master/ImGuiScene/ImGuiSceneGL.jpg)
 
 ### How to use
 There are two main ways of using ImGuiScene in your project:
