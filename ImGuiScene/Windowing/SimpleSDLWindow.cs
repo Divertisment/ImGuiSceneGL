@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using static SDL2.SDL;
 
 namespace ImGuiScene
@@ -18,7 +19,7 @@ namespace ImGuiScene
         [DllImport("user32.dll")]
         static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
         #endregion
-
+        Rectangle rect = Screen.PrimaryScreen.Bounds;
         uint ntr_ex;
         const int GWL_STYLE = -16;
         const int GWL_EXSTYLE = -20;
@@ -34,7 +35,7 @@ namespace ImGuiScene
             SetWindowLong(hWnd, GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TRANSPARENT);
             SetLayeredWindowAttributes(hWnd, 0, alpha, 2);// Transparency=51=20%, LWA_ALPHA=2
 
-           // SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, rect.Width, rect.Height, 32 | 64);
+            SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, rect.Width, rect.Height, 32 | 64);
             var margins = Margins.FromRectangle(new Rectangle(-1, -1, -1, -1));
             DwmExtendFrameIntoClientArea(hWnd, ref margins);
         }
@@ -46,7 +47,7 @@ namespace ImGuiScene
             SetWindowLong(hWnd, GWL_EXSTYLE, ntr_ex | WS_EX_LAYERED);
             SetWindowLong(hWnd, GWL_EXSTYLE, ntr_ex & ~WS_EX_TRANSPARENT);
             // SetLayeredWindowAttributes(hWnd, 0x00000000, 0, LWA_COLORKEY);
-          //  SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, rect.Width, rect.Height, 32 | 64);
+            SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, rect.Width, rect.Height, 32 | 64);
         }
         public void MakeBaseTransperent(uint transparentColorKey) {
             var hWnd = GetHWnd();

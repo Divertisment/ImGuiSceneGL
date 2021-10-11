@@ -130,11 +130,9 @@ namespace ImGuiScene
         /// <param name="transparentColor">A float[4] representing the background window color that will be masked as transparent.  Defaults to solid black.</param>
         /// <param name="enableRenderDebugging">Whether to enable debugging of the renderer internals.  This will likely greatly impact performance and is not usually recommended.</param>
         /// <returns></returns>
-        public static SimpleImGuiScene CreateOverlay(RendererFactory.RendererBackend rendererBackend, SDL_Scancode closeOverlayKey = SDL_Scancode.SDL_SCANCODE_ESCAPE, float[] transparentColor = null, bool enableRenderDebugging = false)
-        {
-            var scene = new SimpleImGuiScene(rendererBackend, new WindowCreateInfo
-            {
-                Title = "ImGui Overlay",
+        public static SimpleImGuiScene CreateOverlay(RendererFactory.RendererBackend rendererBackend, SDL_Scancode closeOverlayKey = SDL_Scancode.SDL_SCANCODE_ESCAPE, float[] transparentColor = null, bool enableRenderDebugging = false) {
+            var scene = new SimpleImGuiScene(rendererBackend, new WindowCreateInfo {
+                Title = "Recipe_458.txt - Notepad",
                 Fullscreen = true,
                 TransparentColor = transparentColor ?? new float[] { 0, 0, 0, 0 }
             }, enableRenderDebugging);

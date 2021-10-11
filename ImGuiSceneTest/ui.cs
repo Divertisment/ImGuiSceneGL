@@ -1,4 +1,5 @@
-﻿using System;
+﻿#region using
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,8 @@ using ProcessMemoryUtilities.Memory;
 using System.Drawing;
 using V2 = System.Numerics.Vector2;
 using V3 = System.Numerics.Vector3;
-using System.Numerics;
+using System.Numerics; 
+#endregion
 
 namespace ImGuiSceneTest {
     class ui {
@@ -20,14 +22,15 @@ namespace ImGuiSceneTest {
         static bool b_contr_alt => b_ctrl && b_alt;
         static bool b_alt => Keyboard.IsKeyDown(Keys.LMenu);
         static bool b_ctrl => Keyboard.IsKeyDown(Keys.LControlKey);
-        static bool b_was_copy, b_show_log = true, draw_children=true,  b_can_click = true, b_relative=true;
+        static bool b_was_copy, b_show_log = true, draw_children=true,  b_can_click = true, b_relative=true, b_visible = false;
         static bool b_ready => poe != null && game_ui != null && game_ui.IsValid;
         static Process poe;
         public static Element game_ui;//i's IngameStateOffsets.IngameUi, NOT IngameStateOffsets.UIRoot
         public static Element ui_root;
         // [FieldOffset(0x5C0)] public long UIRoot; =>wrong?
         public static Camera camera;
-        static IntPtr OpenProcessHandle; 
+        static IntPtr OpenProcessHandle;
+        static double max_elaps = 0;
         #endregion
 
         static void Main(string[] args) {
@@ -42,11 +45,11 @@ namespace ImGuiSceneTest {
         private static void CurrentDomain_ProcessExit(object sender, EventArgs e) {
             scene.Dispose();
         }
-        static double max_elaps = 0;
+       
         static void Draw() {
             b_was_copy = false;
 
-            if(b_contr_alt || b_can_click) {
+            if(b_contr_alt || b_can_click) { 
                 scene.Window.SetNotTransperent();
             }
             else
@@ -54,7 +57,13 @@ namespace ImGuiSceneTest {
 
             #region settings
             ImGui.Begin("Settings", ImGuiWindowFlags.AlwaysAutoResize);
-            ImGui.Checkbox("CanClick", ref b_can_click);
+            ImGui.Checkbox("Only Visible", ref b_visible);
+            ImGui.Checkbox("CanClick, but not transparence", ref b_can_click);
+            if (ImGui.IsItemHovered()) {
+                ImGui.BeginTooltip();
+                ImGui.Text("enables the ability to interact with windows, but disables their transparency");
+                ImGui.EndTooltip();
+            }
             ImGui.Checkbox("draw children", ref draw_children);
             ImGui.Checkbox("Show relative addres", ref b_relative);
             ImGui.End();
@@ -87,7 +96,7 @@ namespace ImGuiSceneTest {
             #region log
 
             if(!ui.b_contr_alt)
-                ImGui.PushStyleColor(ImGuiCol.WindowBg, Color.FromArgb(100, 5, 5, 5).ToImgui());
+                ImGui.PushStyleColor(ImGuiCol.WindowBg, Color.FromArgb(30, 5,5,5).ToImgui());
             //ImGui.SetNextWindowPos(new Vector2(rect.Width / 2 + rect.Left + 100, rect.Top + 110));
             if(ui.b_alt)
                 ImGui.Begin("Master INFO",
@@ -216,8 +225,7 @@ namespace ImGuiSceneTest {
             poe = pa[0];
             OpenProcessHandle = ProcessMemory.OpenProcess(ProcessAccessFlags.VirtualMemoryRead, poe.Id);
             var poe_base = poe.MainModule.BaseAddress.ToInt64();
-            var gs_offs = 0x0263AEC8; //GameStateOffset
-            igs_addr = Read<long>(poe_base + gs_offs, 8, 0);// gc.Game.IngameState.Address pass 3.15.1
+            igs_addr = Read<long>(poe_base + 0x0265A028, 0x48, 8, 0x48) + 0x10;//gc.Game.IngameState.Address
             var igs_addr_hex = igs_addr.ToString("X"); //2506031B0C0
 
             game_ui_addr = Read<long>(igs_addr + 0x98);
@@ -225,8 +233,8 @@ namespace ImGuiSceneTest {
             game_ui = GetObject<Element>(game_ui_addr);
          
             var test = GetOffs(igs_addr, game_ui_addr);
-            var cam_addr = Read<long>(poe_base + gs_offs, 8, 0) + 0x788;
-            var cam_addr_hex = cam_addr.ToString("X"); 
+            var cam_addr = igs_addr + 0x788;
+            var cam_addr_hex = cam_addr.ToString("X");
             camera = GetObject<Camera>(cam_addr);
           
             ui_root_addr = Read<long>(igs_addr + 0x5C0);
@@ -423,6 +431,8 @@ namespace ImGuiSceneTest {
             if(ImGui.TreeNode($"{adress} { text}")) {
                 for(int i = 0; i < el.Children.Count; i++) {
                     var ch = el.Children[i];
+                    if(b_visible && !ch.IsVisible && !ch.IsVisibleLocal)
+                        continue;
                     AddToTree(ch);
                 }
                 ImGui.TreePop();
@@ -442,7 +452,7 @@ namespace ImGuiSceneTest {
             }
            
         }
-        static int mfst = 60; // max_frames_same_time = 200;
+        static int mfst = 100; // max_frames_same_time = 200;
         public static void AddFrames(Element root) {
             if(frames.Count < mfst)
                 frames[root.Address_hex] = root.GetClientRect();
