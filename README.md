@@ -5,7 +5,7 @@
  * Removed everything related to DX.
  * Added transparency to frames.
  * Added a test project with drawing ui elements over POE
- https://www.ownedcore.com/forums/attachments/mmo/path-of-exile/poe-bots-programs/78337d1628148837-exileapi-3-15-release-uiroot-serch-3-15-1-done-jpg
+ https://github.com/wlastas/ImGuiSceneGL/blob/master/ImGuiScene/ImGuiSceneGL.jpg
 
 ### How to use
 There are two main ways of using ImGuiScene in your project:
