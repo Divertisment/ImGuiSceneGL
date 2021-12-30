@@ -9,11 +9,6 @@ using System.Threading.Tasks;
 namespace ImGuiSceneTest {
     public partial class Camera :IMemObj {
         CameraOffsets offs; //FrameCache?
-        public Vector2 cursor_sp => offs.Cursor_SP;
-        public Vector3 curs_to_world => new Vector3(offs.Cursor_to_world.X, offs.Cursor_to_world.Y, hero_pos.Z);
-        public Vector2 curs_to_grid => new Vector2(offs.Cursor_to_world.X, offs.Cursor_to_world.Y) * 0.092f; //worldToGridScale
-
-        public Vector3 hero_pos => new Vector3(offs.Hero_x, offs.Hero_y, offs.Hero_z);
 
         //public Entity target_ent {
         //    get {
@@ -77,24 +72,17 @@ namespace ImGuiSceneTest {
         }
 
     }
-
+    //https://github.com/Queuete/ExileApi/blob/master/GameOffsets/CameraOffsets.cs
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    public partial struct CameraOffsets {
+    public struct CameraOffsets {
         [FieldOffset(0x8)] public int Width;
         [FieldOffset(0xC)] public int Height;
         [FieldOffset(0x1C4)] public float ZFar;
 
         //First value is changing when we change the screen size (ratio)
         //4 bytes before the matrix doesn't change
-        [FieldOffset(0x80)] public Matrix4x4 MatrixBytes;
+        [FieldOffset(0x80)] public System.Numerics.Matrix4x4 MatrixBytes;
         [FieldOffset(0xF0)] public Vector3 Position;
     }
-    public partial struct CameraOffsets {
-        [FieldOffset(0x39C)] public Vector2 Cursor_SP; //cursor screen point in px
-        [FieldOffset(0x3A4)] public Vector2 Cursor_to_world;
-        [FieldOffset(0x400)] public float Hero_z;
-        [FieldOffset(0x400)] public float Hero_x;
-        [FieldOffset(0x400)] public float Hero_y;
-        [FieldOffset(0x3c9)] public long Target_addres;
-    }
+
 }

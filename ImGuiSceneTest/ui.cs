@@ -225,19 +225,20 @@ namespace ImGuiSceneTest {
             poe = pa[0];
             OpenProcessHandle = ProcessMemory.OpenProcess(ProcessAccessFlags.VirtualMemoryRead, poe.Id);
             var poe_base = poe.MainModule.BaseAddress.ToInt64();
-            igs_addr = Read<long>(poe_base + 0x0265A028, 0x48, 8, 0x48) + 0x10;//gc.Game.IngameState.Address
-            var igs_addr_hex = igs_addr.ToString("X"); //2506031B0C0
+            igs_addr = Read<long>(poe_base + 0x0273C820, 0x20, 0);//ui.gc.Game.IngameState.Address
+            var igs_addr_hex = igs_addr.ToString("X"); //27B43380C80 => pass 3.16.2b
 
-            game_ui_addr = Read<long>(igs_addr + 0x98);
-            var game_ui_hex = game_ui_addr.ToString("X");
+            game_ui_addr = Read<long>(igs_addr + 0x80); //ui.gc.Game.IngameState.IngameUi;
+            var game_ui_hex = game_ui_addr.ToString("X"); //27BC81F9400 =>pass 3.16.2b
             game_ui = GetObject<Element>(game_ui_addr);
          
             var test = GetOffs(igs_addr, game_ui_addr);
-            var cam_addr = igs_addr + 0x788;
-            var cam_addr_hex = cam_addr.ToString("X");
+            var cam_addr = igs_addr + 0x870; 
+            var cam_addr_hex = cam_addr.ToString("X"); //27B433814F0 ==> pass 3.16.2b
             camera = GetObject<Camera>(cam_addr);
           
-            ui_root_addr = Read<long>(igs_addr + 0x5C0);
+            ui_root_addr = Read<long>(igs_addr + 0x4F8); // IngameStateOffsets=>UIRoot
+            var ui_root_addr_hex = ui_root_addr.ToString("X"); //27B30E3CDE0
             ui_root = GetObject<Element>(ui_root_addr);
         }
   
